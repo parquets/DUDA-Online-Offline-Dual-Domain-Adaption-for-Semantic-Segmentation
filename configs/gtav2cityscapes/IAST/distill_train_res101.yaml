@@ -1,0 +1,121 @@
+---
+experiment_name: 'gtav2cs_res101_iast'
+use_ema: False
+use_distill: True
+adv_train: False
+stage: "distill"
+network:
+  backbone_type: 'resnet101'
+  backbone_layers: [3,4,23,3]
+  backbone_strides: [1,2,1,1]
+  backbone_dilations: [1,1,2,4]
+  backbone_fix_bn: False
+  backbone_with_ibn: False
+
+  decoder_type: "DeepLabV2Decoder"
+  decoder_fix_bn: False
+  predictor_type: "UpsamplePredictor"
+
+source_input:
+  resize: [1052,1914]
+  # gamma: [0.2, 0.2]
+  # brightness: [0.3, 0.5]
+  # contrast: [0.3, 0.5]
+  # saturation: [0.3, 0.5]
+  # hue: [0.3, 0.5]
+  random_scale: [0.51, 1.6]
+  random_crop: [512,896]
+  random_flip: True
+  mean: [104.00698793, 116.66876762, 122.67891434]
+  std: [1, 1, 1]
+  use_caffe: True
+
+target_input:
+  resize: [1024,2048]
+  random_scale: [0.51, 1.6]
+  random_crop: [512,896]
+  random_flip: True
+  val_size: [1024, 2048]
+  mean: [104.00698793, 116.66876762, 122.67891434]
+  std: [1, 1, 1]
+  use_caffe: True
+
+
+source_loader:
+  bs: 2
+  nw: 2
+target_loader:
+  bs: 2
+  nw: 2
+val_loader:
+  bs: 2
+  nw: 2
+
+train:
+  wd: 0.0002
+  lr: 0.001
+  scheduler_gamma: 0.9
+  optimizer: "SGD"
+  lr_scheduler: "Poly"
+  warmup_iteration: 0
+  max_iteration: 80000
+  display_iteration: 20
+  eval_iteration: 1000
+
+  source_loss: 'CrossEntropyLoss'
+  target_loss: 'SymmetricCrossEntropyLoss'
+  source_loss_weight: 1.0
+  pseudo_loss_weight: 1.0
+
+  resume_from: './pretrain/distill_pretrain1.pth'
+  mean_resume_from: './checkpoints/self_train/gtav2cityscapes/stage1/MFA/last_iter_0402.pth'
+  # mean_resume_from: './checkpoints/self_train/gtav2cityscapes/stage1/distill/iter_45000seg_model.pth'
+
+pseudo:
+    alpha_start: 0.2
+    alpha_end: 0.7
+
+source_dataset:
+  dataset_type: "GTAV"
+  num_classes: 19
+  dataset_dir: './data/GTAV'
+  image_dir: 'images'
+  mask_dir: 'labels'
+  image_num: 24940
+
+target_dataset:
+  dataset_type: "Cityscapes"
+  num_classes: 19
+  dataset_dir: './data/Cityscapes'
+  image_dir: 'train_images'
+  mask_dir: 'train_masks'
+
+pseudo_dataset:
+  dataset_type: "Cityscapes"
+  num_classes: 19
+  dataset_dir: './data/Cityscapes'
+  image_dir: 'train_images'
+  mask_dir: 'pseudo_label_distill'
+
+val_dataset:
+  dataset_type: "Cityscapes"
+  num_classes: 19
+  dataset_dir: './data/Cityscapes'
+  image_dir: 'val_images'
+  mask_dir: 'val_masks'
+
+
+
+logger:
+  train_log_save_dir: './checkpoints/self_train/gtav2cityscapes/stage1/distill_stage2/'
+
+
+save:
+  save_dir: './checkpoints/self_train/gtav2cityscapes/stage1/distill_stage2/'
+  save_sub_dir: ''
+
+distribution:
+  num_gpus: 2
+  num_nodes: 1
+  rank_within_nodes: 0
+  port: '12355'

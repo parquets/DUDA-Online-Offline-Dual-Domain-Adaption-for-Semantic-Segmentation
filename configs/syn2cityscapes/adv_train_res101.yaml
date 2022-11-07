@@ -1,0 +1,76 @@
+---
+experiment_name: 'syn2cityscapes_res101_adv_train'
+use_ema: False
+adv_train: True
+stage: "adv_train"
+network:
+  backbone_type: 'resnet101'
+  backbone_layers: [3,4,23,3]
+  backbone_strides: [1,2,1,1]
+  backbone_dilations: [1,1,2,4]
+  backbone_fix_bn: True
+  backbone_with_ibn: False
+
+  discriminator: "FCDiscriminator"
+
+  decoder_type: "DeepLabV2Decoder"
+  decoder_fix_bn: True
+  predictor_type: "UpsamplePredictor"
+
+train:
+  wd: 0.0005
+  lr: 0.001
+  adv_loss_weight: 0.001
+
+  discriminator_lr: 0.001
+  optimizer: "SGD"
+  lr_scheduler: "Poly"
+  max_epoch: 4
+  display_iteration: 20
+  eval_iteration: 500
+  seg_loss: 'CrossEntropyLoss2d'
+  resume_from: './checkpoints/source_only/syn2cityscapes/best_iter.pth'
+
+test:
+  resize: [[768, 1536]]
+  batch_size: 2
+
+source_aug:
+  crop_min_h: 341
+  crop_max_h: 640
+  w2h_ratio: 2
+  resize_h: 512
+  resize_w: 1024
+
+target_aug:
+  crop_min_h: 341
+  crop_max_h: 1000
+  w2h_ratio: 2
+  resize_h: 512
+  resize_w: 1024
+
+source_dataset:
+  dataset_type: "Synthia"
+  dataset_dir: './data/Synthia/RAND_CITYSCAPES'
+  train_anno_file: './data/SYNTHIA_train.json'
+  image_num: 9400
+
+target_dataset:
+  dataset_type: "Cityscapes"
+  dataset_dir: './data/Cityscapes'
+  train_anno_file: './data/cityscapes_train.json'
+  val_anno_file: './data/cityscapes_val.json'
+
+logger:
+  train_log_save_dir: './checkpoints/adv_train/syn2cityscapes'
+
+save:
+  save_dir: './checkpoints/adv_train/syn2cityscapes/'
+  save_sub_dir: ''
+
+distribution:
+  num_gpus: 1
+  num_nodes: 1
+  world_size: 1
+  rank_within_nodes: 0
+  port: '12355'

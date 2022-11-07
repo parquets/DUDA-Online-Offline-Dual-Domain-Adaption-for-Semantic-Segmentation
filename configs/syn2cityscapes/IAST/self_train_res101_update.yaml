@@ -1,0 +1,123 @@
+---
+experiment_name: 'syn2cs_res101_iast'
+use_ema: True
+adv_train: False
+stage: "self_train"
+network:
+  backbone_type: 'resnet101'
+  backbone_layers: [3,4,23,3]
+  backbone_strides: [1,2,1,1]
+  backbone_dilations: [1,1,2,4]
+  backbone_fix_bn: True
+  backbone_with_ibn: False
+
+  decoder_type: "DeepLabV2Decoder"
+  decoder_fix_bn: True
+  predictor_type: "UpsamplePredictor"
+
+source_input:
+  resize: [1024,1820]
+  # gamma: [0.2, 0.2]
+  # brightness: [0.3, 0.5]
+  # contrast: [0.3, 0.5]
+  # saturation: [0.3, 0.5]
+  # hue: [0.3, 0.5]
+  random_scale: [0.51, 1.6]
+  random_crop: [512,896]
+  random_flip: True
+  mean: [104.00698793, 116.66876762, 122.67891434]
+  std: [1, 1, 1]
+  use_caffe: True
+
+target_input:
+  # gamma: [0.2, 0.2]
+  # brightness: [0.3, 0.3]
+  # contrast: [0.3, 0.3]
+  # saturation: [0.3, 0.3]
+  # hue: [0.3, 0.3]
+  resize: [1024,2048]
+  random_scale: [0.51, 1.6]
+  random_crop: [512,896]
+  random_flip: True
+  val_size: [1024, 2048]
+  mean: [104.00698793, 116.66876762, 122.67891434]
+  std: [1, 1, 1]
+  use_caffe: True
+
+
+source_loader:
+  bs: 2
+  nw: 2
+target_loader:
+  bs: 2
+  nw: 2
+val_loader:
+  bs: 2
+  nw: 2
+
+train:
+  wd: 0.0002
+  lr: 0.002
+  scheduler_gamma: 0.9
+  optimizer: "SGD"
+  lr_scheduler: "Poly"
+  warmup_iteration: 2000
+  max_iteration: 80000
+  display_iteration: 50
+  eval_iteration: 5000
+
+  source_loss: 'CrossEntropyLoss'
+  target_loss: 'SymmetricCrossEntropyLoss'
+  source_loss_weight: 1.0
+  pseudo_loss_weight: 1.0
+
+  resume_from: './pretrain/FDA_synthia/synthia_40000.pth'
+
+pseudo:
+    alpha_start: 0.2
+    alpha_end: 0.7
+
+
+source_dataset:
+  dataset_type: "Synthia"
+  num_classes: 19
+  dataset_dir: './data/Synthia'
+  image_dir: 'images'
+  mask_dir: 'labels'
+  image_num: 9400
+
+target_dataset:
+  dataset_type: "Cityscapes"
+  num_classes: 19
+  dataset_dir: './data/Cityscapes'
+  image_dir: 'train_images'
+  mask_dir: 'train_masks'
+
+
+val_dataset:
+  dataset_type: "Cityscapes"
+  num_classes: 19
+  dataset_dir: './data/Cityscapes'
+  image_dir: 'val_images'
+  mask_dir: 'val_masks'
+
+pseudo_dataset:
+  dataset_type: "Cityscapes"
+  dataset_dir: './data/Cityscapes'
+  image_dir: 'train_images'
+  mask_dir: 'syn_pseudo_label_0.45_update'
+
+
+logger:
+  train_log_save_dir: './checkpoints/self_train/syn2cityscapes/stage1/MFA_classbalance/'
+
+
+save:
+  save_dir: './checkpoints/self_train/syn2cityscapes/stage1/MFA_classbalance/'
+  save_sub_dir: ''
+
+distribution:
+  num_gpus: 2
+  num_nodes: 1
+  rank_within_nodes: 0
+  port: '12355'

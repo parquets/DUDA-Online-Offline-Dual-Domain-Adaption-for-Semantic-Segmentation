@@ -1,0 +1,58 @@
+---
+experiment_name: 'syn2cityscapes_res101_source_only'
+stage: "source_only"
+network:
+  backbone_type: 'resnet101'
+  backbone_layers: [3,4,23,3]
+  backbone_strides: [1,2,1,1]
+  backbone_dilations: [1,1,2,4]
+  backbone_fix_bn: True
+  backbone_with_ibn: False
+
+  decoder_type: "DeepLabV2Decoder"
+  decoder_fix_bn: True
+  predictor_type: "UpsamplePredictor"
+
+train:
+  wd: 0.0005
+  lr: 0.001
+  optimizer: "SGD"
+  lr_scheduler: "Poly"
+  max_iteration: 70000
+  display_iteration: 50
+
+
+test:
+  resize: [[768, 1536]]
+
+source_dataset:
+  dataset_type: "Synthia"
+  dataset_dir: './data/Synthia/RAND_CITYSCAPES'
+  image_dir: 'RGB'
+  mask_dir: 'GT/LABELS'
+  image_num: 9400
+
+target_dataset:
+  dataset_type: "Cityscapes"
+  dataset_dir: './data/Cityscapes'
+  image_dir: 'train_images'
+  mask_dir: 'train_masks'
+
+val_dataset:
+  dataset_type: "Cityscapes"
+  dataset_dir: './data/Cityscapes'
+  image_dir: 'val_images'
+  mask_dir: 'val_masks'
+
+logger:
+  train_log_save_dir: './checkpoints/source_only/syn2cityscapes'
+
+save:
+  save_dir: './checkpoints/source_only/syn2cityscapes/'
+  save_sub_dir: ''
+
+distribution:
+  num_gpus: 1
+  num_nodes: 1
+  rank_within_nodes: 0
+  port: '12355'
