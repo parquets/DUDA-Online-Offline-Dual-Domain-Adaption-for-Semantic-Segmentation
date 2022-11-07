@@ -31,8 +31,6 @@ python eval.py --cfg ./configs/syn2cityscapes/IAST/self_train_res101.yaml
 '''
 
 confusion_matrix = np.zeros((19, 19))
-# cbst_threshold = [0.9961,0.8792,0.9878,0.4739,0.5131,0.5886,0.4462,0.5331,0.9295,0.9998,0.9691,0.7025,0.5109,0.8874,0.9998,0.6226,0.9998,0.6515,0.5479]
-cbst_threshold = [0.9995,0.9949,0.9989,0.7802,0.7511,0.7942,0.7555,0.8523,0.9824,0.9998,0.9931,0.883,0.7287,0.9562,0.9998,0.8597,0.9998,0.8739,0.8425]
 
 def cityscapes_decoder(pred_label, file_name):
     pred_label[pred_label != 255] += 1
@@ -187,10 +185,7 @@ def eval_model(model, eval_loader):
             
     features_array = np.concatenate(feature_list, axis=0)
     label_array = np.concatenate(label_list, axis=0)
-    print(features_array.shape)
-    print(label_array.shape)
-    np.save("tsne_features.npy", features_array)
-    np.save("tsne_label.npy", label_array)
+
     return mean_iu
 
 def eval_fusion(model_A, model_B, eval_loader):
@@ -253,25 +248,10 @@ def eval_dir_model(model, eval_loader, dir_path):
 
 
 def main():
-    # dir_path = './checkpoints/self_train/gtav2cityscapes/stage1/IAST_s1'
-    # weight_path = './checkpoints/self_train/gtav2cityscapes/stage1/IAST_s1/epoch_2.pth'
-    weight_A = './checkpoints/self_train/gtav2cityscapes/stage1/MFA/last_iter_0402.pth'
-    # weight_A = './checkpoints/self_train/syn2cityscapes/stage1/MFA/best_iter.pth'
-    # weight_A = './pretrain/FDA_synthia/synthia_40000.pth'
-    # weight_A = './pretrain/FDA/gta5_55000.pth'
-    # weight = torch.load(weight_A)
 
-    # weight_A = './pretrain/FDA_synthia/synthia_40000.pth'
-    # weight_A = './checkpoints/self_train/gtav2cityscapes/stage1/distill/iter_45000seg_model.pth'
-    # weight_B = './pretrain/SIM_synthia/BestSynCov.pth'
-    # weight_B = './pretrain/syn2city_LB_0_05.pth'
+    weight_A = './checkpoints/self_train/gtav2cityscapes/stage1/MFA/last_iter_0402.pth'
+
     model_A = GeneralSegmentor(config, config.dataset.num_classes).cuda()
-    # model_A = Deeplab(is_teacher=False, bn_clr=True).cuda()
-    # model_B = GeneralSegmentor(config, config.dataset.num_classes).cuda()
-    # print(model_A)
-    # exit(0)
-    #model_A =   Deeplab(num_classes=19).cuda()
-    #model_B = GeneralSegmentor(config, config.dataset.num_classes).cuda()
     model_A.load_pretrained(weight_A)
     # model_B.load_pretrained(weight_B)
     #model_B.load_pretrained(torch.load(weight_B))
@@ -279,18 +259,9 @@ def main():
 
     target_val_loader = DataLoader(dataset=target_val_set, batch_size=6, 
                                     num_workers=0, shuffle=False)
-    # eval_dir_model(model=model, eval_loader=target_val_loader, dir_path=dir_path)
+
     eval_model(model_A, target_val_loader)
-    # eval_fusion(model_A=model_A, model_B=model_B, eval_loader=target_val_loader)
-    # cbst_threshold = get_threshold_cbst(model_A, model_B, target_val_loader, 0.45)
-    # print(cbst_threshold)
+
 
 if __name__ == '__main__':
     main()
-
-#             val_miou: 0.374125, 0: 0.816515, 1: 0.337357, 2: 0.761792, 3: 0.089120, 4: 0.003440, 5: 0.305812, 6: 0.185923, 7: 0.224992, 8: 0.728413, 9: 0.000000, 10: 0.825550, 11: 0.546063, 12: 0.266275, 13: 0.829288, 14: 0.000000, 15: 0.390133, 16: 0.000000, 17: 0.310750, 18: 0.486950
-#             val_miou: 0.383985, 0: 0.809553, 1: 0.359917, 2: 0.756060, 3: 0.158185, 4: 0.007393, 5: 0.317846, 6: 0.192881, 7: 0.244793, 8: 0.682791, 9: 0.000000, 10: 0.825433, 11: 0.604376, 12: 0.276941, 13: 0.824685, 14: 0.000000, 15: 0.430881, 16: 0.000000, 17: 0.311828, 18: 0.492151
-#             val_miou: 0.387348, 0: 0.817650, 1: 0.360196, 2: 0.764352, 3: 0.129826, 4: 0.005735, 5: 0.320572, 6: 0.193927, 7: 0.240007, 8: 0.709324, 9: 0.000000, 10: 0.833087, 11: 0.598626, 12: 0.277688, 13: 0.839691, 14: 0.000000, 15: 0.429744, 16: 0.000000, 17: 0.333429, 18: 0.505758
-# FDA         val_miou: 0.341718, 0: 0.702195, 1: 0.274633, 2: 0.793061, 3: 0.103306, 4: 0.002221, 5: 0.306064, 6: 0.108041, 7: 0.169251, 8: 0.795274, 9: 0.000000, 10: 0.815031, 11: 0.527371, 12: 0.229370, 13: 0.782619, 14: 0.000000, 15: 0.324412, 16: 0.000000, 17: 0.229647, 18: 0.330155
-# SIM         val_miou: 0.333464, 0: 0.883178, 1: 0.385792, 2: 0.793300, 3: 0.022077, 4: 0.004263, 5: 0.242126, 6: 0.029246, 7: 0.072672, 8: 0.784119, 9: 0.000000, 10: 0.819814, 11: 0.534521, 12: 0.193698, 13: 0.807230, 14: 0.000000, 15: 0.321457, 16: 0.000000, 17: 0.093377, 18: 0.348948
-# FDA+SIM     val_miou: 0.354117, 0: 0.864367, 1: 0.394125, 2: 0.805987, 3: 0.052705, 4: 0.003130, 5: 0.292739, 6: 0.056389, 7: 0.113057, 8: 0.808068, 9: 0.000000, 10: 0.841821, 11: 0.560358, 12: 0.218640, 13: 0.820000, 14: 0.000000, 15: 0.358215, 16: 0.000000, 17: 0.169137, 18: 0.369488

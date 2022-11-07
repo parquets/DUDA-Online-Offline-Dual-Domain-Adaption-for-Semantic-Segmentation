@@ -24,20 +24,14 @@ logger = create_logger(config, config.logger.train_log_save_dir)
 
 '''
 python train.py --cfg ./configs/syn2cityscapes/source_only_res101.yaml
-python train.py --cfg ./configs/syn2cityscapes/source_only_res101_multi.yaml
 nohup python -u train.py --cfg ./configs/syn2cityscapes/source_only_res101.yaml >>./logs/source_only.out
 nohup python -u train.py --cfg ./configs/syn2cityscapes/source_only_res101_multi.yaml >>./logs/source_only_slpit.out
-nohup python -u train.py --cfg ./configs/syn2cityscapes/source_only_res101_multi.yaml >>./logs/source_only_multi.out
 
 python train.py --cfg ./configs/syn2cityscapes/adv_train_res101.yaml
-python train.py --cfg ./configs/syn2cityscapes/adv_train_res101_multi.yaml
 nohup python -u train.py --cfg ./configs/syn2cityscapes/adv_train_res101.yaml >>./logs/adv_train_0110.out
-nohup python -u train.py --cfg ./configs/syn2cityscapes/adv_train_res101_multi.yaml >>./logs/adv_train_multi.out
 
-python train.py --cfg ./configs/syn2cityscapes/IAST/self_train_res101.yaml
-python train.py --cfg ./configs/syn2cityscapes/IAST/self_train_res101_multi.yaml
+python train.py --cfg ./configs/syn2cityscapes/IAST/self_train_res101_update.yaml
 nohup python -u train.py --cfg ./configs/syn2cityscapes/IAST/self_train_res101.yaml >>./logs/st_0121.out
-nohup python -u train.py --cfg ./configs/syn2cityscapes/IAST/self_train_res101_multi.yaml >>./logs/self_train_s1.out
 '''
 
 result = []
